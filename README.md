@@ -20,7 +20,7 @@ No se usa iluminación ni texturizado. El color de cada cara proviene directamen
 | Ventana y contexto  | GLFW             | Creación de ventana multiplataforma y contexto OpenGL           |
 | Carga de extensiones| GLAD             | Resolución en tiempo de ejecución de las funciones de OpenGL    |
 | Matemáticas         | GLM              | Vectores y matrices compatibles con GLSL (column-major)         |
-| Sistema de build    | CMake 3.25+      | Configuración y compilación multiplataforma                     |
+| Sistema de build    |  Make            | Configuración y compilación                                     |
 
 ### ¿Por qué GLAD?
 
@@ -32,8 +32,7 @@ OpenGL no es una librería enlazable directamente: sus funciones las exporta el 
 
 ```
 cubo-opengl/
-├── CMakeLists.txt       # Configuración del build
-├── build.sh             # Script de compilación
+├── Makefike             # Fichero para compilación con make
 ├── README.md            # Este fichero
 │
 ├── src/
