@@ -28,68 +28,15 @@
 #include <ctime>
 #include <iomanip>
 
+#include <Logger/Logger.hpp>
+
 /**
  * Contantes
  */
+
+// Tamaño de la ventana 
 static constexpr int   kWidth    = 800;
 static constexpr int   kHeight   = 600;
-
-/**
- * Sistema de log
- */
-
-// Niveles de log
-enum LogLevel {
-    TRACE,
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR,
-    FATAL
-};
-
-/**
- * @brief Convierte un nivel de log a texto.
- * 
- * @param level Código del nivel de log.
- * @return const char* Texto del nivel de log.
- */
-const char* logLevelToString(LogLevel level) {
-    switch (level)
-    {
-    case TRACE: return "TRACE";
-    case DEBUG: return "DEBUG";
-    case INFO: return "INFO";
-    case WARN: return "WARN";
-    case ERROR: return "ERROR";
-    case FATAL: return "FATAL";
-    default: throw std::invalid_argument("Unknown log level");
-    }
-}
-
-// Nivel de mínimo de log. Los mensajes de nivel inferior no se envian a la salida.
-LogLevel minLogLevel = TRACE;
-
-/**
- * @brief Escribe un mensaje de log.
- * 
- * Escribe por la salida de error <code>std::cerr</code> un mensaje de log.
- * Los mensajes de nivel inferior <code>minLogLevel</no se escribren.
- * 
- * @param level Nivel del mensaje de log.
- * @param text Texto del mensaje de log.
- */
-static void log(LogLevel level, const char* text) {
-    if (level >= minLogLevel) {
-        auto t = std::time(nullptr);
-        auto tm = *std::localtime(&t);
-        auto now = std::put_time(&tm, "%d-%m-%Y %H:%M:%S");
-    
-        std::cerr << "[" << now << "] " << logLevelToString(level) << ": "
-                  << text << std::endl;
-
-    }
-}
 
 /**
  * @brief Programa principal.
@@ -97,11 +44,13 @@ static void log(LogLevel level, const char* text) {
  * @return int Código de salida del programa.
  */
 int main() {
-    log(TRACE, "Inicio del programa.");
+    Logger console_log(LogLevel::TRACE, LogMode::CONSOLE, "");
+
+    console_log.log(LogLevel::INFO, "Inicio del programa.");
 
     // Inicializamos GLFW
     if (!glfwInit()) {
-        log(ERROR, "Error inicializando GLFW.");
+        console_log.log(LogLevel::ERROR, "Error inicializando GLFW.");
         return -1;
     }
 
@@ -115,7 +64,7 @@ int main() {
                                           nullptr, nullptr);   
 
     if (!window) {
-        log(ERROR, "Error creando la ventana de GLFW.");
+        console_log.log(LogLevel::ERROR, "Error creando la ventana de GLFW.");
         glfwTerminate();
         return -1;
     }
@@ -133,6 +82,6 @@ int main() {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    log(TRACE, "Fin del programa.");
+    console_log.log(LogLevel::INFO, "Fin del programa.");
     return 0;
 }
