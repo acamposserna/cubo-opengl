@@ -1,0 +1,2 @@
+El fichero glad.c no se incluye en este repositorio.
+Debe obtenerse de https://glad.dav1d.de/
