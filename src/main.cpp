@@ -396,11 +396,17 @@ int main() {
         glfwPollEvents();
     }
 
-    // TODO: Limpieza de recursos
+    // Limpiamos de recursos
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
+    glDeleteProgram(program);
+
     // Cerramos la ventana
     glfwDestroyWindow(window);
     glfwTerminate();
 
+    // Fin del programa
     console_log.log(LogLevel::INFO, "Fin del programa.");
     return 0;
 }

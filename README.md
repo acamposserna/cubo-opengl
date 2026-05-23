@@ -49,7 +49,7 @@ cubo-opengl/
     ├── Logger/
     │   └── Logger.hpp   # Cabecera de la clase Logger
     ├── glad/
-    │   └── glad.h       # Cabecera generada por GLAD
+    │   └── glad.h       # Cabecera generada por GLAD (NO INCLUIDA EN ESTE REPOSITORIO)
     └── KHR/
         └── khrplatform.h  # Tipos portables de Khronos
 ```
@@ -94,7 +94,7 @@ En **OpenGL** se utilizan los siguientes objetos para almacenar la geometría de
 
 **VBO (Vertex Buffer Object)**
 
-En este bloque de memoria de la GPU se almacenan los datos de todos los vértices del cubo, tanto la posición como el color.
+En este bloque de memoria VRAM de la GPU se almacenan los datos de todos los vértices del cubo, tanto la posición como el color.
 
 ```
 // Frontal (+Z) ─ Rojo
@@ -117,7 +117,7 @@ En lugar de repetir vértices, el EBO almacena 36 índices que indican el orden 
 
 **VAO (Vertex Array Object)**
 
-Objeto que almacena que VBO/EBO están activos y cómo se deben interpretar sus datos, con solo llamar a ```glBindVertexArray``` no en necesario configurar nada más.
+Objeto que almacena que VBO/EBO están activos y cómo se deben interpretar sus datos, con solo llamar a `glBindVertexArray` no en necesario configurar nada más.
 
 ### 2. Pipeline de inicialización
 
@@ -193,6 +193,31 @@ while (ventana abierta) {
 
 ### 6. Limpieza
 
-Al salir del bucle se liberan explícitamente todos los recursos de la GPU (`glDelete*`) y se destruye la ventana. Aunque el sistema operativo los recuperaría al terminar el proceso, liberarlos en orden correcto es una buena práctica que facilita la depuración con herramientas como Valgrind o RenderDoc.
+Al salir del bucle se liberan explícitamente todos los recursos de la GPU (`glDelete*`) y se destruye la ventana. Aunque el sistema operativo los recuperaría al terminar el proceso, liberarlos en orden correcto es una buena práctica que facilita la depuración.
 
 ---
+
+## Compilación
+
+La compilación se realiza con la herramienta `make` y el fichero `Makefile`.
+
+### Compilar
+
+Desde la raiz del proyecto:
+
+```bash
+make clean
+make
+```
+
+El ejecutable se genera en `build/cubo-opengl`.
+
+### Ejecutar
+
+```bash
+./build/cubo-opengl
+```
+
+> El ejecutable debe lanzarse desde la raíz del proyecto (o desde `build/`), ya que busca los shaders en la ruta relativa `shaders/`. El `Makefile` copia automáticamente la carpeta `shaders/` al directorio de build durante la compilación.
+
+
