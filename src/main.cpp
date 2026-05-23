@@ -262,7 +262,55 @@ int main() {
     // Crear el programa para la GPU. Carga, compila y linka los shaders.
     GLuint program = createProgram("shaders/cube.vert", "shaders/cube.frag");
 
-    // TODO: Crear y configurar VAO / VBO / EBO
+    // Crear y configurar VBO / EBO / VAO
+    // VBO (Vertex Buffer Object): memoria en GPU para almacenar los datos
+    //     de los vértices (posición y color).
+    // EBO (Element Buffer Object): array con los indices de los vértices
+    //     en VBO que forman los triángulos.
+    // VAO (Vertex Array Object): guarda la configuración de VAO y EBO para no
+    //     tener que hacerla en cada pasada del bucle.
+
+    // Creamos las zonas de memoria
+    GLuint vao, vbo, ebo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
+    // Vinculamos el VAO. A partir de aquí "recuerda" todo lo que hacemos.
+    glBindVertexArray(vao);
+
+    // Cargamos los vértices en la VRAM (GL_STATIC_DRAW = datos inmutables).
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
+
+    // Cargamos los índices en la VRAM. El EBO queda vinculado al VAO.
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(kIndices), kIndices, GL_STATIC_DRAW);
+
+    // glVertexAttribPointer describe el layout de UN atributo dentro del VBO.
+    // Parámetros: (índice de atributo, nº componentes, tipo, normalizar,
+    //              stride en bytes, offset en bytes desde el inicio del vértice)
+    //
+    // Nuestro vértice tiene este layout en memoria (stride = 6 floats = 24 B):
+    //   [x  y  z  r  g  b]
+    //    └──┬──┘  └──┬──┘
+    //   aPos(loc=0) aColor(loc=1)
+    //   offset 0     offset 12 B
+
+    constexpr GLsizei stride = 6 * sizeof(float);
+
+    // Atributo 0 → aPos: 3 floats, offset 0
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride,
+                          reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(0);
+
+    // Atributo 1 → aColor: 3 floats, offset = 3 floats = 12 bytes
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride,
+                          reinterpret_cast<void*>(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // Desvinculamos el VAO para evitar modificaciones accidentales.
+    glBindVertexArray(0);
 
     // TODO: Matrices de cámara (moodel, view, projection)
 

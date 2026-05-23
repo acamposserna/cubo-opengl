@@ -55,6 +55,7 @@ cubo-opengl/
 ```
 
 > **Nota:** GLM y GLFW se presuponen instalados en el sistema (`/usr/include`) y no se incluyen en el repositorio.
+
 > **Nota2:** El fichero glad.c no se incluye en este repositorio, debe descargarse desde https://glad.dav1d.de/
 
 ---
@@ -87,6 +88,23 @@ Los vértices de cada cara se definen en sentido **antihorario (CCW)** vistos de
   0 ──── 1
 ```
 
+#### 1.1. Objetos de geometría en OpenGL
+
+En **OpenGL** se utilizan los siguientes objetos para almacenar la geometría de los modelos:
+
+**VBO (Vertex Buffer Object)**
+
+En este bloque de memoria de la GPU se almacenan los datos de todos los vértices del cubo, tanto la posición como el color.
+
+```
+// Frontal (+Z) ─ Rojo
+-1.f,-1.f, 1.f,  1.f,0.f,0.f,   // 0: inferior-izquierda
+ 1.f,-1.f, 1.f,  1.f,0.f,0.f,   // 1: inferior-derecha
+ 1.f, 1.f, 1.f,  1.f,0.f,0.f,   // 2: superior-derecha
+-1.f, 1.f, 1.f,  1.f,0.f,0.f,   // 3: superior-izquierda
+...
+```
+
 **EBO (Element Buffer Object)**
 
 En lugar de repetir vértices, el EBO almacena 36 índices que indican el orden en que la GPU debe leer el VBO para formar los 12 triángulos (2 por cara):
@@ -96,6 +114,10 @@ En lugar de repetir vértices, el EBO almacena 36 índices que indican el orden 
  4, 5, 6,  4, 6, 7,   // Trasera
  ...
 ```
+
+**VAO (Vertex Array Object)**
+
+Objeto que almacena que VBO/EBO están activos y cómo se deben interpretar sus datos, con solo llamar a ```glBindVertexArray``` no en necesario configurar nada más.
 
 ### 2. Pipeline de inicialización
 
@@ -116,7 +138,7 @@ glfwInit()
 
 ### 3. VAO / VBO / EBO
 
-Estos tres objetos conforman la pieza central del pipeline de OpenGL:
+Como hemos visto en el punto **1.1**, estos tres objetos conforman la pieza central del pipeline de OpenGL:
 
 | Objeto | Qué almacena |
 |--------|-------------|
