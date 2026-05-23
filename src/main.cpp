@@ -44,6 +44,12 @@
 static constexpr int   kWidth    = 800;
 static constexpr int   kHeight   = 600;
 
+// Velocidad de rotación del cubo
+static constexpr float kRotSpeed = 45.0f; // grados por segundo
+
+// Logger de consola
+static Logger console_log(LogLevel::TRACE, LogMode::CONSOLE, "");
+
 /**
  * Geometría del cubo
  * 
@@ -99,11 +105,6 @@ static constexpr unsigned int kIndices[] = {
     16,17,18, 16,18,19,   // Superior
     20,21,22, 20,22,23,   // Inferior
 };
-
-/**
- * El Logger lo hacemos global a todo el programa.
- */
-Logger console_log(LogLevel::TRACE, LogMode::CONSOLE, "");
 
 
 /**
@@ -312,13 +313,81 @@ int main() {
     // Desvinculamos el VAO para evitar modificaciones accidentales.
     glBindVertexArray(0);
 
-    // TODO: Matrices de cámara (moodel, view, projection)
+    // Matrices de cámara (moodel, view, projection)
+    //
+    // El pipeline de transformación 3D→2D usa tres matrices encadenadas:
+    //
+    //   gl_Position = Proyección × Vista × Modelo × posición_local
+    //
+    // MODELO (model): transforma del espacio local del objeto al espacio mundo.
+    //   En este caso es una rotación que cambia cada fotograma → se calcula
+    //   dentro del bucle.
+    //
+    // VISTA (view): transforma del espacio mundo al espacio cámara.
+    //   lookAt(posición_cámara, punto_objetivo, vector_arriba)
+    //   Cámara en (0, 1.5, 5) mirando al origen → el cubo aparece ligeramente
+    //   desde arriba y desde delante.
+    //
+    // PROYECCIÓN (projection): aplica perspectiva (objetos lejanos más pequeños).
+    //   perspective(fov_vertical, aspecto, plano_cercano, plano_lejano)
+
+    // Las matrices proyection y view son constantes en toda la ejecutación
+    glm::mat4 projection = glm::perspective(glm::radians(45.f),
+                               static_cast<float>(kWidth) / kHeight, 0.1f, 100.f);
+    glm::mat4 view = glm::lookAt(glm::vec3(0.f, 1.5f, 5.f),
+                                 glm::vec3(0.f),
+                                 glm::vec3(0.f, 1.f, 0.f));
+
+    // Obtenemos la localizacion de las variables "uniform" en el programa
+    // de la GPU (vertex shader) para pasarle las matrices.
+    GLint uModel      = glGetUniformLocation(program, "uModel");
+    GLint uView       = glGetUniformLocation(program, "uView");
+    GLint uProjection = glGetUniformLocation(program, "uProjection");
 
     // Bucle principal de renderizado
+    //
+    // Inicializamos las varibles de ángulo de giro y tiempo inicial (para el
+    // cálculo del delta time)
+    float  angle    = 0.f;
+    double prevTime = glfwGetTime(); 
     while (!glfwWindowShouldClose(window)) {
-        // TODO: Cálculo de matrices
 
-        // TODO: Envío de matrices a los shaders
+        // Delta time (dt): tiempo transcurrido desde el fotograma anterior.
+        // Multiplicar la velocidad por dt hace que la rotación sea independiente
+        // de los FPS: 45°/s tanto a 30 FPS como a 144 FPS.
+        double now = glfwGetTime();
+        float  dt  = static_cast<float>(now - prevTime);
+        prevTime   = now;
+        angle += kRotSpeed * dt;
+
+        // Limpiamos el color buffer (fondo gris oscuro) y el depth buffer.
+        // Olvidar limpiar el depth buffer produce artefactos de profundidad
+        // en fotogramas anteriores.
+        glClearColor(0.15f, 0.15f, 0.15f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Cálculo de la matriz modelo: rotación sobre Y (45°/s)
+        // compuesta con rotación sobre X (22.5°/s). Las tasas distintas
+        // crean un movimiento cuasi-periódico que expone las seis caras
+        // a la cámara a lo largo del tiempo.
+        glm::mat4 model = glm::rotate(glm::mat4(1.f),
+                                      glm::radians(angle),
+                                      glm::vec3(0.f, 1.f, 0.f));
+        model = glm::rotate(model,
+                            glm::radians(angle * 0.5f),
+                            glm::vec3(1.f, 0.f, 0.f));
+
+        // Envío de matrices a los shaders. Se envían en los "uniforms".
+        glUseProgram(program);
+        glUniformMatrix4fv(uModel,      1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(uView,       1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(uProjection, 1, GL_FALSE, glm::value_ptr(projection));
+
+        // Dibujamos: 36 índices = 12 triángulos = 6 caras del cubo.
+        // glDrawElements usa el EBO vinculado al VAO para leer los índices.
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
 
         // Intercambio de buffers de visualización
         glfwSwapBuffers(window);
